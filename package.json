@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "node init && nodemon src/index.js"
   },
   "author": "Jay Kumar Gupta",
   "license": "ISC",

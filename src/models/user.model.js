@@ -1,28 +1,27 @@
-import  { model , Schema } from "mongoose";
-import bcrypt from "bcrypt"
+import { model, Schema } from "mongoose";
+import bcrypt from "bcrypt";
 
-const userSchema = Schema({
-    userName : {type:String,required:true, unique:true, index:true, loweCase:true, },
-    email : {type:String, required:true, unique:true ,lowercase:true},
-    passWord : {type:String , reuired :true, minlen:[8,"pasword should contain atleast 8 characters"] }
-},
-{timeStamps : true});
+const userSchema = new Schema(
+  {
+    userName: { type: String, required: true, unique: true, lowercase: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true, minlength: 8 }
+  },
+  { timestamps: true }
+);
 
-userSchema.pre("save", async function (next){
-    if(!this.isModified("password")) return next();
+// Hash password
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(
+    this.password,
+    Number(process.env.BCRYPT_SALT_ROUNDS) || 10
+  );
+});
 
-    this.password=await bcrypt.hash(this.password, process.env.BCRYPT_SALT_ROUNDS || 10)
-    next();
-})
+// Compare passwords
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
-userSchema.methods.isPasswordCorrect=async function(passWord){
-    return await bcrypt.compare(passWord,this.passWord)
-}
-
-userSchema.methods.isPasswordCorrect = async function(password){
-    return await bcrypt.compare(password, this.password)
-}
-
-
- const User = model("User" , userSchema  );
- export default User;
+export default model("User", userSchema);
